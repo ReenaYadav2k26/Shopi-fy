@@ -7,12 +7,19 @@ import authRoutes from "./routes/authRoute.js";
 import cors from "cors";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 //configure env
 dotenv.config();
 
 // database config
 connectDB();
+
+// ====== ESM Path Fix ======
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 //rest object
 const app = express();
@@ -27,6 +34,14 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/category", categoryRoutes);
 app.use("/api/v1/product", productRoutes);
 
+// ====== DEPLOY STATIC FILES IN PRODUCTION ======
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "client/build")));
+
+  app.get("*", function (req, res) {
+    res.sendFile(path.join(__dirname, "client/build", "index.html"));
+  });
+}
 
 //rest api
 app.get("/", (req, res) => {
@@ -43,20 +58,3 @@ app.listen(PORT, () => {
       .white
   );
 });
-
-
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Serve static assets if in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "client/build")));
-
-  app.get("*", function (req, res) {
-    res.sendFile(path.join(__dirname, "client/build", "index.html"));
-  });
-}
